@@ -531,3 +531,15 @@ LEFT JOIN vendite_totali vt
 JOIN prodotto p ON s.id_prodotto = p.id_prodotto;
 
 SELECT * FROM stato_scorte;
+
+# Quali sono le query da eseguire per verificare quante unità di un prodotto ci sono in un dato magazzino e per monitorare le soglie di restock?
+SELECT
+	ss.id_prodotto,
+    ss.nome_prodotto,
+    lr.soglia_restock,
+    ss.quantita_rimanente_calcolata
+FROM stato_scorte ss
+JOIN livello_restock lr 
+	ON ss.id_magazzino = lr.id_magazzino
+	AND ss.id_prodotto = lr.id_prodotto
+WHERE ss.quantita_rimanente_calcolata < lr.soglia_restock;  # mostra tutti i prodotti dove le scorte sono inferiori alla soglia_restock
