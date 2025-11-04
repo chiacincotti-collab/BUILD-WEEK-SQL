@@ -496,7 +496,7 @@ SELECT * FROM dettaglio_vendita;
 
 # Ogni qual volta un prodotto viene venduto in un negozio, qual è la query da eseguire per aggiornare le tabelle di riferimento?
 # Questa query mi dà il TOTALE VENDUTO per id_prodotto e id_magazzino, quindi creo la VIEW chiamata vendite_totali
-CREATE VIEW vendite_totali AS (
+CREATE VIEW vendite_totali_gennaio AS (
 SELECT
 	p.nome AS nome_prodotto,
 	dv.id_prodotto,
@@ -550,3 +550,150 @@ WHERE ss.quantita_rimanente_calcolata < lr.soglia_restock  # mostra tutti i prod
 SELECT * FROM vendite_totali;
 SELECT * FROM stato_scorte;
 SELECT * FROM prodotto_sotto_soglia;
+
+DROP VIEW stato_scorte;
+DROP VIEW vendite_totali;
+
+SELECT
+	dv.id_prodotto,
+    m.id_magazzino,
+    s.quantita_iniziale - IFNULL(vt.tot_venduto, 0) AS quantita_rimanente_calcolata,
+    DATE_FORMAT(v.data_vendita, "%Y%m") AS YYYYMM,
+    p.nome AS nome_prodotto,
+    SUM(dv.quantita) AS tot_venduto
+FROM dettaglio_vendita dv
+JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
+JOIN vendita v ON dv.id_vendita = v.id_vendita
+JOIN negozio n ON v.id_negozio = n.id_negozio
+JOIN magazzino m ON n.id_magazzino = m.id_magazzino
+GROUP BY 
+	p.nome,
+	dv.id_prodotto,
+    m.id_magazzino,
+    DATE_FORMAT(v.data_vendita, "%Y%m")
+ORDER BY
+	dv.id_prodotto,
+    m.id_magazzino,
+    DATE_FORMAT(v.data_vendita, "%Y%m");
+    
+INSERT INTO vendita (data_vendita, prezzo_vendita, id_negozio) VALUES
+('2025-01-05', 319.98, 1),  -- 2 righe
+('2025-01-05', 79.79, 2),   -- stesso giorno, altro negozio
+('2025-01-07', 579.98, 1),
+('2025-01-10', 258.99, 3),
+('2025-01-10', 614.89, 4),  -- stesso giorno
+('2025-01-13', 268.90, 5),
+('2025-01-15', 799.00, 6),
+('2025-01-18', 158.00, 7),
+('2025-01-18', 69.88, 8),   -- stesso giorno
+('2025-01-21', 449.00, 9),
+('2025-01-24', 599.00, 10),
+('2025-01-27', 43.46, 11),
+('2025-01-30', 928.00, 12),
+('2025-02-02', 129.89, 13),
+('2025-02-02', 349.96, 14), -- stesso giorno
+('2025-02-05', 223.00, 15),
+('2025-02-08', 37.88, 16),
+('2025-02-11', 198.98, 17),
+('2025-02-14', 899.00, 18),
+('2025-02-17', 79.89, 19),
+('2025-02-20', 51.00, 20),
+('2025-02-23', 41.97, 21),
+('2025-02-26', 698.99, 22),
+('2025-03-01', 548.98, 23);
+
+INSERT INTO dettaglio_vendita (quantita, prezzo_unitario, id_prodotto, id_vendita) VALUES
+-- Vendita 1 (negozio 1)
+(1, 289.99, 1, 1),
+(1, 29.99, 50, 1),
+
+-- Vendita 2 (negozio 2)
+(2, 29.90, 6, 2),
+(1, 19.99, 33, 2),
+
+-- Vendita 3 (negozio 1)
+(2, 289.99, 1, 3),
+
+-- Vendita 4 (negozio 3)
+(1, 229.00, 49, 4),
+(1, 29.99, 50, 4),
+
+-- Vendita 5 (negozio 4)
+(1, 549.99, 5, 5),
+(1, 64.90, 38, 5),
+
+-- Vendita 6 (negozio 5)
+(1, 189.00, 24, 6),
+(1, 79.90, 12, 6),
+
+-- Vendita 7 (negozio 6)
+(1, 799.00, 46, 7),
+
+-- Vendita 8 (negozio 7)
+(1, 119.00, 7, 8),
+(1, 39.00, 48, 8),
+
+-- Vendita 9 (negozio 8)
+(2, 19.99, 33, 9),
+(1, 29.90, 6, 9),
+
+-- Vendita 10 (negozio 9)
+(1, 449.00, 39, 10),
+
+-- Vendita 11 (negozio 10)
+(1, 599.00, 3, 11),
+
+-- Vendita 12 (negozio 11)
+(3, 8.49, 41, 12),
+(1, 17.99, 44, 12),
+
+-- Vendita 13 (negozio 12)
+(1, 499.00, 36, 13),
+(1, 429.00, 37, 13),
+
+-- Vendita 14 (negozio 13)
+(1, 49.99, 10, 14),
+(1, 79.90, 12, 14),
+
+-- Vendita 15 (negozio 14)
+(1, 289.99, 1, 15),
+(3, 19.99, 33, 15),
+
+-- Vendita 16 (negozio 15)
+(2, 12.00, 20, 16),
+(1, 199.00, 25, 16),
+
+-- Vendita 17 (negozio 16)
+(10, 1.79, 17, 17),
+(2, 9.99, 18, 17),
+
+-- Vendita 18 (negozio 17)
+(1, 149.00, 45, 18),
+(2, 24.99, 47, 18),
+
+-- Vendita 19 (negozio 18)
+(1, 899.00, 8, 19),
+
+-- Vendita 20 (negozio 19)
+(1, 14.99, 31, 20),
+(1, 64.90, 38, 20),
+
+-- Vendita 21 (negozio 20)
+(1, 39.00, 32, 21),
+(1, 12.00, 20, 21),
+
+-- Vendita 22 (negozio 21)
+(1, 11.99, 22, 22),
+(2, 14.99, 23, 22),
+
+-- Vendita 23 (negozio 22)
+(1, 549.99, 5, 23),
+(1, 149.00, 45, 23),
+
+-- Vendita 24 (negozio 23)
+(1, 289.99, 1, 24),
+(1, 229.00, 49, 24),
+(1, 29.99, 50, 24);
+
+SELECT * FROM vendita
+ORDER BY data_vendita DESC;
