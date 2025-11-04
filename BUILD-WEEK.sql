@@ -58,6 +58,17 @@ FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto),
 FOREIGN KEY (id_vendita) REFERENCES vendita(id_vendita)
 );
 
+CREATE TABLE livello_restock (
+    id_magazzino INT,
+    id_categoria INT,
+    id_prodotto INT,
+    soglia_restock INT NOT NULL,
+    PRIMARY KEY (id_magazzino, id_categoria, id_prodotto),
+    FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
 INSERT INTO categoria (nome_categoria) VALUES
 ('Elettronica'),
 ('Informatica'),
@@ -423,6 +434,58 @@ INSERT INTO dettaglio_vendita (quantita, prezzo_unitario, id_prodotto, id_vendit
 (1, 29.99, 49, 49),
 (1, 289.99, 50, 50);
 
+INSERT INTO livello_restock (id_magazzino, id_categoria, id_prodotto, soglia_restock) VALUES
+(1, 1, 1, 50),
+(2, 2, 2, 45),
+(3, 3, 3, 60),
+(4, 4, 4, 55),
+(5, 5, 5, 70),
+(6, 6, 6, 40),
+(7, 7, 7, 80),
+(8, 8, 8, 90),
+(9, 9, 9, 35),
+(10, 10, 10, 75),
+(11, 11, 11, 65),
+(12, 12, 12, 50),
+(13, 13, 13, 85),
+(14, 14, 14, 95),
+(15, 15, 15, 55),
+(16, 16, 16, 100),
+(17, 17, 17, 45),
+(18, 18, 18, 60),
+(19, 19, 19, 50),
+(20, 20, 20, 70),
+(21, 21, 21, 40),
+(22, 22, 22, 80),
+(23, 23, 23, 65),
+(24, 24, 24, 75),
+(25, 25, 25, 90),
+(26, 26, 26, 85),
+(27, 27, 27, 95),
+(28, 28, 28, 60),
+(29, 29, 29, 70),
+(30, 30, 30, 55),
+(31, 31, 31, 65),
+(32, 32, 32, 50),
+(33, 33, 33, 40),
+(34, 34, 34, 85),
+(35, 35, 35, 90),
+(36, 36, 36, 75),
+(37, 37, 37, 55),
+(38, 38, 38, 60),
+(39, 39, 39, 70),
+(40, 40, 40, 95),
+(41, 41, 41, 80),
+(42, 42, 42, 100),
+(43, 43, 43, 85),
+(44, 44, 44, 90),
+(45, 45, 45, 50),
+(46, 46, 46, 40),
+(47, 47, 47, 75),
+(48, 48, 48, 80),
+(49, 49, 49, 65),
+(50, 50, 50, 55);
+
 SELECT * FROM categoria;
 SELECT * FROM magazzino;
 SELECT * FROM prodotto;
@@ -435,37 +498,36 @@ SELECT * FROM dettaglio_vendita;
 # Questa query mi dà il TOTALE VENDUTO per id_prodotto e id_magazzino, quindi creo la VIEW chiamata vendite_totali
 CREATE VIEW vendite_totali AS (
 SELECT
+	p.nome AS nome_prodotto,
 	dv.id_prodotto,
     m.id_magazzino,
     SUM(dv.quantita) AS tot_venduto
 FROM dettaglio_vendita dv
+JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
 JOIN vendita v ON dv.id_vendita = v.id_vendita
 JOIN negozio n ON v.id_negozio = n.id_negozio
 JOIN magazzino m ON n.id_magazzino = m.id_magazzino
 GROUP BY 
+	p.nome,
 	dv.id_prodotto,
     m.id_magazzino
 );
 
 SELECT * FROM vendite_totali;
-SHOW TABLES;
-DESCRIBE dettaglio_vendita;
 
+# Ora devo aggiornare quantita_rimanente, facendo quantita_iniziale - vendita_totali
+# View che mostra lo stato aggiornato delle scorte dopo le vendite
+CREATE VIEW stato_scorte AS
+SELECT 
+    s.id_prodotto,
+    p.nome AS nome_prodotto,
+    s.id_magazzino,
+    s.quantita_iniziale,
+    s.quantita_iniziale - IFNULL(vt.tot_venduto, 0) AS quantita_rimanente_calcolata
+FROM stock s
+LEFT JOIN vendite_totali vt 
+  ON s.id_prodotto = vt.id_prodotto 
+ AND s.id_magazzino = vt.id_magazzino
+JOIN prodotto p ON s.id_prodotto = p.id_prodotto;
 
-#SIMULAZIONE NUOVA VENDITA
-
-START TRANSACTION;
-INSERT INTO vendita (data_vendita, prezzo_vendita, id_negozio) 
-VALUES 
- ('2025-11-04', 150, 3);
-COMMIT;
-
-START TRANSACTION;
-INSERT INTO dettaglio_vendita (quantita, prezzo_unitario, id_prodotto, id_vendita) 
-VALUES
- (3, 20.00, 2, 5),
- (2, 45.00, 4, 5);
- COMMIT;
- 
-
- 
+SELECT * FROM stato_scorte;
