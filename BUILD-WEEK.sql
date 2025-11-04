@@ -1,61 +1,64 @@
-# Creazione del Database
+# CREAZIONE DEL DATABASE
 CREATE DATABASE VendiCose_SpA;
 USE VendiCose_SpA;
 
-# Creazione delle tabelle, partendo dalle tabelle forti, ovvero le tabelle senza le FK
+# CREAZIONE TABELLE
+
 CREATE TABLE categoria (
-id_categoria INT AUTO_INCREMENT PRIMARY KEY,
-nome_categoria VARCHAR (100) NOT NULL
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nome_categoria VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE magazzino (
-id_magazzino INT AUTO_INCREMENT PRIMARY KEY,
-nome_magazzino VARCHAR (100) NOT NULL,
-citta_magazzino VARCHAR (100)
+    id_magazzino INT AUTO_INCREMENT PRIMARY KEY,
+    nome_magazzino VARCHAR(100) NOT NULL,
+    citta_magazzino VARCHAR(100)
 );
 
 CREATE TABLE prodotto (
-id_prodotto INT AUTO_INCREMENT PRIMARY KEY,
-nome VARCHAR (100) NOT NULL,
-prezzo_unitario DECIMAL (10,2) NOT NULL,
-id_categoria INT,
-FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+    id_prodotto INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    prezzo_unitario DECIMAL(10,2) NOT NULL,
+    id_categoria INT,
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
 );
 
 CREATE TABLE stock (
-id_prodotto INT,
-id_magazzino INT,
-quantita_iniziale INT,
-quantita_rimanente INT,
-PRIMARY KEY (id_prodotto, id_magazzino),
-FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto),
-FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino)
+    id_prodotto INT,
+    id_magazzino INT,
+    quantita_iniziale INT NOT NULL,
+    quantita_rimanente INT NOT NULL,
+    anno INT NOT NULL,
+    mese INT NOT NULL,
+    PRIMARY KEY (id_prodotto, id_magazzino, anno, mese),
+    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto),
+    FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino)
 );
 
 CREATE TABLE negozio (
-id_negozio INT AUTO_INCREMENT PRIMARY KEY,
-nome_negozio VARCHAR (100) NOT NULL,
-citta_negozio VARCHAR (100),
-id_magazzino INT,
-FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino)
+    id_negozio INT AUTO_INCREMENT PRIMARY KEY,
+    nome_negozio VARCHAR(100) NOT NULL,
+    citta_negozio VARCHAR(100),
+    id_magazzino INT,
+    FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino)
 );
 
 CREATE TABLE vendita (
-id_vendita INT AUTO_INCREMENT PRIMARY KEY,
-data_vendita DATE NOT NULL,
-prezzo_vendita DECIMAL (10,2) NOT NULL,
-id_negozio INT,
-FOREIGN KEY (id_negozio) REFERENCES negozio(id_negozio)
+    id_vendita INT AUTO_INCREMENT PRIMARY KEY,
+    data_vendita DATE NOT NULL,
+    prezzo_totale DECIMAL(10,2) NOT NULL,
+    id_negozio INT,
+    FOREIGN KEY (id_negozio) REFERENCES negozio(id_negozio)
 );
 
 CREATE TABLE dettaglio_vendita (
-id_dettaglio_vendita INT AUTO_INCREMENT PRIMARY KEY,
-quantita INT NOT NULL,
-prezzo_unitario DECIMAL (10,2) NOT NULL,
-id_prodotto INT,
-id_vendita INT,
-FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto),
-FOREIGN KEY (id_vendita) REFERENCES vendita(id_vendita)
+    id_dettaglio_vendita INT AUTO_INCREMENT PRIMARY KEY,
+    quantita INT NOT NULL,
+    prezzo_unitario DECIMAL(10,2) NOT NULL,
+    id_prodotto INT,
+    id_vendita INT,
+    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto),
+    FOREIGN KEY (id_vendita) REFERENCES vendita(id_vendita)
 );
 
 CREATE TABLE livello_restock (
@@ -64,502 +67,326 @@ CREATE TABLE livello_restock (
     id_prodotto INT,
     soglia_restock INT NOT NULL,
     PRIMARY KEY (id_magazzino, id_categoria, id_prodotto),
-    FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (id_magazzino) REFERENCES magazzino(id_magazzino) ON DELETE CASCADE,  #ON DELETE CASCADE (Se elimino un id_magazzino dalla tabella magazzino, in automatico lo elimina anche in livello_restock)
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria) ON DELETE CASCADE,
+    FOREIGN KEY (id_prodotto) REFERENCES prodotto(id_prodotto) ON DELETE CASCADE
 );
 
+# POPOLAMENTO DELLE TABELLE
+
 INSERT INTO categoria (nome_categoria) VALUES
-('Elettronica'),
-('Informatica'),
-('Telefonia'),
-('Elettrodomestici'),
-('Videogiochi'),
-('Accessori Casa'),
-('Arredamento'),
-('Illuminazione'),
-('Giardinaggio'),
-('Fai da te'),
-('Sport'),
-('Ciclismo'),
-('Fitness'),
-('Moda Uomo'),
-('Moda Donna'),
-('Calzature'),
-('Orologi'),
-('Gioielli'),
-('Bellezza'),
-('Profumi'),
-('Salute'),
-('Alimentari'),
-('Bevande'),
-('Animali'),
-('Libri'),
-('Fumetti'),
-('Musica'),
-('Film'),
-('Strumenti Musicali'),
-('Auto'),
-('Moto'),
-('Accessori Auto'),
-('Accessori Moto'),
-('Giocattoli'),
-('Prima Infanzia'),
-('Scuola e Ufficio'),
-('Cancelleria'),
-('Arte e Creatività'),
-('Collezionismo'),
-('Casa Smart'),
-('Sicurezza Domestica'),
-('Domotica'),
-('Fotografia'),
-('Videocamere'),
-('Console e Accessori'),
-('Drone e Accessori'),
-('Cucina'),
-('Pulizia Casa'),
-('Bagno'),
-('Tessili Casa'),
-('Decorazioni');
+('Elettronica'), ('Informatica'), ('Telefonia'), ('Elettrodomestici'),
+('Videogiochi'), ('Accessori Casa'), ('Arredamento'), ('Illuminazione'),
+('Giardinaggio'), ('Fai da te'), ('Sport'), ('Ciclismo'),
+('Fitness'), ('Moda Uomo'), ('Moda Donna'), ('Calzature'),
+('Orologi'), ('Gioielli'), ('Bellezza'), ('Profumi');
 
 INSERT INTO magazzino (nome_magazzino, citta_magazzino) VALUES
 ('Magazzino Centrale Nord', 'Milano'),
 ('Magazzino Centrale Sud', 'Napoli'),
 ('Deposito Roma Est', 'Roma'),
-('Deposito Roma Ovest', 'Roma'),
-('Magazzino Torino Nord', 'Torino'),
-('Magazzino Torino Sud', 'Torino'),
+('Magazzino Torino', 'Torino'),
 ('Centro Logistico Bologna', 'Bologna'),
-('Centro Logistico Firenze', 'Firenze'),
-('Hub Genova Porto', 'Genova'),
-('Hub Venezia Marittima', 'Venezia'),
-('Magazzino Bari Zona Industriale', 'Bari'),
-('Magazzino Palermo Est', 'Palermo'),
-('Magazzino Catania Ovest', 'Catania'),
-('Magazzino Verona Nord', 'Verona'),
-('Magazzino Padova Est', 'Padova'),
-('Deposito Lecce Sud', 'Lecce'),
-('Magazzino Brescia Centro', 'Brescia'),
-('Centro Logistico Bergamo', 'Bergamo'),
-('Hub Reggio Emilia', 'Reggio Emilia'),
-('Magazzino Parma Est', 'Parma'),
-('Deposito Modena Nord', 'Modena'),
-('Magazzino Pescara Porto', 'Pescara'),
-('Deposito Chieti Scalo', 'Chieti'),
-('Magazzino Taranto Sud', 'Taranto'),
-('Magazzino Salerno Zona Industriale', 'Salerno'),
-('Hub Perugia Est', 'Perugia'),
-('Magazzino Ancona Nord', 'Ancona'),
-('Deposito Pesaro Urbino', 'Pesaro'),
-('Centro Logistico Trieste', 'Trieste'),
-('Magazzino Udine Ovest', 'Udine'),
-('Deposito Bolzano Sud', 'Bolzano'),
-('Magazzino Trento Nord', 'Trento'),
-('Centro Logistico Aosta', 'Aosta'),
-('Hub Campobasso', 'Campobasso'),
-('Magazzino Potenza Sud', 'Potenza'),
-('Deposito Matera Ovest', 'Matera'),
-('Magazzino Catanzaro Centro', 'Catanzaro'),
-('Hub Cosenza Est', 'Cosenza'),
-('Deposito Reggio Calabria', 'Reggio Calabria'),
-('Magazzino L’Aquila Est', 'L’Aquila'),
-('Deposito Teramo Nord', 'Teramo'),
-('Magazzino Sassari Sud', 'Sassari'),
-('Deposito Cagliari Nord', 'Cagliari'),
-('Hub Oristano', 'Oristano'),
-('Centro Logistico Pisa', 'Pisa'),
-('Magazzino Livorno Porto', 'Livorno'),
-('Magazzino Lucca Est', 'Lucca'),
-('Deposito Arezzo', 'Arezzo'),
-('Magazzino Terni', 'Terni'),
-('Centro Logistico Varese', 'Varese');
+('Hub Genova', 'Genova'),
+('Magazzino Bari', 'Bari'),
+('Magazzino Palermo', 'Palermo'),
+('Magazzino Verona', 'Verona'),
+('Deposito Firenze', 'Firenze');
 
 INSERT INTO prodotto (nome, prezzo_unitario, id_categoria) VALUES
-('Smartphone Galaxy A35', 289.99, 3),
+('Smartphone Samsung Galaxy A35', 289.99, 3),
+('iPhone 13 128GB', 699.00, 3),
+('Xiaomi Redmi Note 12', 199.99, 3),
 ('Notebook Lenovo IdeaPad', 649.90, 2),
-('TV Samsung 55"', 599.00, 4),
+('MacBook Air M2', 1299.00, 2),
+('Monitor LG 27" 4K', 329.00, 2),
+('Mouse Logitech MX Master', 89.99, 2),
 ('Frigorifero Bosch NoFrost', 749.00, 4),
-('Console PlayStation 5', 549.99, 5),
-('Lampada da tavolo LED', 29.90, 8),
-('Trapano a percussione Bosch', 119.00, 10),
-('Bicicletta da corsa Bianchi', 899.00, 12),
-('Tappetino yoga antiscivolo', 24.99, 13),
-('Felpa uomo Adidas', 49.99, 14),
-('Vestito donna Zara', 59.90, 15),
-('Scarpe da ginnastica Nike', 79.90, 16),
-('Orologio Casio digitale', 39.99, 17),
-('Bracciale Pandora argento', 89.00, 18),
-('Profumo Dior Sauvage 100ml', 109.00, 20),
-('Integratore multivitaminico', 14.90, 21),
-('Pacco pasta Barilla 1kg', 1.79, 22),
-('Bottiglia vino Chianti DOCG', 9.99, 23),
-('Crocchette cane Royal Canin', 34.90, 24),
-('Romanzo “1984” di Orwell', 12.00, 25),
-('Fumetto Marvel Spiderman #1', 4.99, 26),
-('CD Coldplay - Parachutes', 11.99, 27),
-('Blu-ray Inception', 14.99, 28),
-('Chitarra acustica Yamaha', 189.00, 29),
-('Casco moto AGV', 199.00, 31),
-('Tappetini auto universali', 24.99, 32),
-('Action figure Batman', 29.90, 34),
-('Seggiolino auto Chicco', 89.00, 35),
-('Zaino scolastico Invicta', 39.90, 36),
-('Penna a sfera Bic', 1.20, 37),
-('Set colori acrilici', 14.99, 38),
-('Francobollo raro Italia 1960', 39.00, 39),
-('Lampadina smart Philips Hue', 19.99, 40),
-('Telecamera interna Wi-Fi', 59.90, 41),
-('Termostato smart Nest', 129.00, 42),
-('Fotocamera Canon EOS 250D', 499.00, 43),
-('Videocamera GoPro Hero 11', 429.00, 44),
-('Controller Xbox Series', 64.90, 45),
-('Drone DJI Mini 2', 449.00, 46),
-('Pentola a pressione Lagostina', 79.90, 47),
-('Detersivo Dash 3L', 8.49, 48),
-('Set asciugamani 3 pezzi', 22.90, 50),
-('Specchio da bagno LED', 59.00, 49),
-('Tovaglia cotone 6 posti', 17.99, 50),
-('Sedia da ufficio ergonomica', 149.00, 7),
-('Divano 3 posti beige', 799.00, 7),
-('Mensola legno IKEA', 24.99, 6),
-('Cacciavite elettrico Xiaomi', 39.00, 10),
-('Monitor gaming 27" LG', 229.00, 2),
-('Mouse wireless Logitech', 29.99, 2);
+('Lavatrice Samsung 9kg', 449.00, 4),
+('Microonde Whirlpool', 129.00, 4),
+('PlayStation 5', 549.99, 5),
+('Xbox Series X', 499.99, 5),
+('Nintendo Switch OLED', 349.99, 5),
+('FIFA 24', 69.99, 5),
+('Divano 3 posti Grigio', 799.00, 7),
+('Sedia Ufficio Ergonomica', 149.00, 7),
+('Libreria IKEA Kallax', 89.99, 7),
+('Lampada LED Smart Philips Hue', 49.90, 8),
+('Lampadario Moderno', 159.00, 8),
+('Striscia LED RGB 5m', 29.90, 8),
+('Tapis Roulant Elettrico', 599.00, 11),
+('Manubri Set 20kg', 79.90, 11),
+('Tappetino Yoga Premium', 34.90, 11),
+('Felpa Nike Sportswear', 59.99, 14),
+('Jeans Levi\'s 501', 89.90, 14),
+('Vestito Zara Elegante', 79.90, 15),
+('Scarpe Running Nike Pegasus', 129.00, 16),
+('Stivali Timberland', 179.00, 16),
+('Dior Sauvage 100ml', 109.00, 20),
+('Chanel N°5 50ml', 139.00, 20);
 
-INSERT INTO stock (id_prodotto, id_magazzino, quantita_iniziale, quantita_rimanente) VALUES
-(1, 1, 120, 80),
-(2, 2, 90, 45),
-(3, 3, 60, 55),
-(4, 4, 50, 30),
-(5, 5, 75, 40),
-(6, 6, 200, 180),
-(7, 7, 100, 70),
-(8, 8, 30, 20),
-(9, 9, 150, 110),
-(10, 10, 90, 60),
-(11, 11, 85, 75),
-(12, 12, 70, 50),
-(13, 13, 95, 70),
-(14, 14, 120, 90),
-(15, 15, 80, 45),
-(16, 16, 300, 270),
-(17, 17, 500, 490),
-(18, 18, 180, 150),
-(19, 19, 200, 130),
-(20, 20, 60, 30),
-(21, 21, 70, 55),
-(22, 22, 40, 25),
-(23, 23, 65, 40),
-(24, 24, 40, 35),
-(25, 25, 50, 45),
-(26, 26, 85, 65),
-(27, 27, 100, 95),
-(28, 28, 200, 190),
-(29, 29, 400, 390),
-(30, 30, 300, 250),
-(31, 31, 250, 230),
-(32, 32, 120, 110),
-(33, 33, 140, 130),
-(34, 34, 180, 150),
-(35, 35, 100, 90),
-(36, 36, 90, 70),
-(37, 37, 70, 50),
-(38, 38, 60, 55),
-(39, 39, 80, 75),
-(40, 40, 150, 140),
-(41, 41, 90, 85),
-(42, 42, 100, 60),
-(43, 43, 200, 170),
-(44, 44, 50, 45),
-(45, 45, 60, 40),
-(46, 46, 30, 20),
-(47, 47, 75, 70),
-(48, 48, 150, 130),
-(49, 49, 90, 80),
-(50, 50, 110, 100);
+# Stock GENNAIO 2025
+INSERT INTO stock (id_prodotto, id_magazzino, quantita_iniziale, quantita_rimanente, anno, mese) VALUES
+(1, 1, 150, 150, 2025, 1),
+(1, 2, 120, 120, 2025, 1),
+(1, 3, 100, 100, 2025, 1),
+(1, 5, 80, 80, 2025, 1),
+(2, 1, 80, 80, 2025, 1),
+(2, 3, 60, 60, 2025, 1),
+(2, 5, 50, 50, 2025, 1),
+(3, 1, 200, 200, 2025, 1),
+(3, 2, 180, 180, 2025, 1),
+(3, 7, 150, 150, 2025, 1),
+(4, 1, 70, 70, 2025, 1),
+(4, 3, 50, 50, 2025, 1),
+(4, 5, 40, 40, 2025, 1),
+(5, 1, 30, 30, 2025, 1),
+(5, 3, 25, 25, 2025, 1),
+(6, 1, 100, 100, 2025, 1),
+(6, 5, 80, 80, 2025, 1),
+(6, 9, 60, 60, 2025, 1),
+(7, 1, 300, 300, 2025, 1),
+(7, 2, 250, 250, 2025, 1),
+(7, 5, 200, 200, 2025, 1),
+(8, 1, 40, 40, 2025, 1),
+(8, 2, 35, 35, 2025, 1),
+(8, 3, 30, 30, 2025, 1),
+(9, 1, 45, 45, 2025, 1),
+(9, 2, 40, 40, 2025, 1),
+(9, 7, 30, 30, 2025, 1),
+(10, 1, 80, 80, 2025, 1),
+(10, 2, 70, 70, 2025, 1),
+(10, 5, 60, 60, 2025, 1),
+(11, 1, 60, 60, 2025, 1),
+(11, 3, 50, 50, 2025, 1),
+(11, 5, 40, 40, 2025, 1),
+(12, 1, 55, 55, 2025, 1),
+(12, 3, 45, 45, 2025, 1),
+(13, 1, 90, 90, 2025, 1),
+(13, 2, 80, 80, 2025, 1),
+(13, 5, 70, 70, 2025, 1),
+(14, 1, 150, 150, 2025, 1),
+(14, 2, 130, 130, 2025, 1),
+(14, 5, 110, 110, 2025, 1),
+(15, 1, 25, 25, 2025, 1),
+(15, 3, 20, 20, 2025, 1),
+(16, 1, 100, 100, 2025, 1),
+(16, 5, 80, 80, 2025, 1),
+(16, 9, 60, 60, 2025, 1),
+(17, 1, 70, 70, 2025, 1),
+(17, 5, 60, 60, 2025, 1),
+(18, 1, 200, 200, 2025, 1),
+(18, 2, 180, 180, 2025, 1),
+(18, 5, 150, 150, 2025, 1),
+(19, 1, 50, 50, 2025, 1),
+(19, 3, 40, 40, 2025, 1),
+(20, 1, 300, 300, 2025, 1),
+(20, 2, 250, 250, 2025, 1),
+(20, 5, 200, 200, 2025, 1),
+(21, 1, 30, 30, 2025, 1),
+(21, 5, 25, 25, 2025, 1),
+(22, 1, 100, 100, 2025, 1),
+(22, 2, 90, 90, 2025, 1),
+(22, 5, 80, 80, 2025, 1),
+(23, 1, 150, 150, 2025, 1),
+(23, 2, 130, 130, 2025, 1),
+(24, 1, 200, 200, 2025, 1),
+(24, 2, 180, 180, 2025, 1),
+(24, 5, 150, 150, 2025, 1),
+(25, 1, 250, 250, 2025, 1),
+(25, 2, 220, 220, 2025, 1),
+(26, 1, 150, 150, 2025, 1),
+(26, 3, 130, 130, 2025, 1),
+(27, 1, 180, 180, 2025, 1),
+(27, 2, 160, 160, 2025, 1),
+(27, 5, 140, 140, 2025, 1),
+(28, 1, 90, 90, 2025, 1),
+(28, 3, 80, 80, 2025, 1),
+(29, 1, 100, 100, 2025, 1),
+(29, 3, 90, 90, 2025, 1),
+(29, 5, 80, 80, 2025, 1),
+(30, 1, 70, 70, 2025, 1),
+(30, 3, 60, 60, 2025, 1);
 
 INSERT INTO negozio (nome_negozio, citta_negozio, id_magazzino) VALUES
-('TechWorld Milano', 'Milano', 1),
-('ElettroShop Napoli', 'Napoli', 2),
-('MediaStore Roma Est', 'Roma', 3),
-('MediaStore Roma Ovest', 'Roma', 4),
-('Torino TechPoint', 'Torino', 5),
-('Torino Casa e Design', 'Torino', 6),
-('Bologna SmartShop', 'Bologna', 7),
-('Firenze Domotica', 'Firenze', 8),
-('Genova Elettronica', 'Genova', 9),
-('Venezia Casa Smart', 'Venezia', 10),
-('Bari ElettroPoint', 'Bari', 11),
-('Palermo Hi-Tech', 'Palermo', 12),
-('Catania Connect', 'Catania', 13),
-('Verona Digitale', 'Verona', 14),
-('Padova Arredo', 'Padova', 15),
-('Lecce Store', 'Lecce', 16),
-('Brescia Hi-Fi', 'Brescia', 17),
-('Bergamo Casa', 'Bergamo', 18),
-('Reggio Emilia Outlet', 'Reggio Emilia', 19),
-('Parma Electronics', 'Parma', 20),
-('Modena Tech Zone', 'Modena', 21),
-('Pescara ClickStore', 'Pescara', 22),
-('Chieti Domus', 'Chieti', 23),
-('Taranto Digital Shop', 'Taranto', 24),
-('Salerno Market', 'Salerno', 25),
-('Perugia Store', 'Perugia', 26),
-('Ancona Retail', 'Ancona', 27),
-('Pesaro Urbino Center', 'Pesaro', 28),
-('Trieste Point', 'Trieste', 29),
-('Udine Store', 'Udine', 30),
-('Bolzano TechCity', 'Bolzano', 31),
-('Trento Smart', 'Trento', 32),
-('Aosta Shop', 'Aosta', 33),
-('Campobasso Outlet', 'Campobasso', 34),
-('Potenza Store', 'Potenza', 35),
-('Matera Domus', 'Matera', 36),
-('Catanzaro Digit', 'Catanzaro', 37),
-('Cosenza Point', 'Cosenza', 38),
-('Reggio Calabria Center', 'Reggio Calabria', 39),
-('L’Aquila CityShop', 'L’Aquila', 40),
-('Teramo Market', 'Teramo', 41),
-('Sassari Click', 'Sassari', 42),
-('Cagliari Tech', 'Cagliari', 43),
-('Oristano Home', 'Oristano', 44),
-('Pisa Hub', 'Pisa', 45),
-('Livorno TechStore', 'Livorno', 46),
-('Lucca Market', 'Lucca', 47),
-('Arezzo Shop', 'Arezzo', 48),
-('Terni Digital', 'Terni', 49),
-('Varese Point', 'Varese', 50);
+('VendiCose Milano Centro', 'Milano', 1),
+('VendiCose Napoli Vomero', 'Napoli', 2),
+('VendiCose Roma Tiburtina', 'Roma', 3),
+('VendiCose Torino Porta Nuova', 'Torino', 4),
+('VendiCose Bologna Due Torri', 'Bologna', 5),
+('VendiCose Genova Porto', 'Genova', 6),
+('VendiCose Bari Centro', 'Bari', 7),
+('VendiCose Palermo Politeama', 'Palermo', 8),
+('VendiCose Verona Arena', 'Verona', 9),
+('VendiCose Firenze Duomo', 'Firenze', 10);
 
-INSERT INTO vendita (data_vendita, prezzo_vendita, id_negozio) VALUES
-('2025-01-05', 349.99, 1),
-('2025-01-07', 89.90, 2),
-('2025-01-10', 129.00, 3),
-('2025-01-12', 599.00, 4),
-('2025-01-15', 49.99, 5),
-('2025-01-18', 799.00, 6),
-('2025-01-21', 29.90, 7),
-('2025-01-23', 449.00, 8),
-('2025-01-25', 9.99, 9),
-('2025-01-27', 14.99, 10),
-('2025-02-01', 59.00, 11),
-('2025-02-03', 229.00, 12),
-('2025-02-05', 19.99, 13),
-('2025-02-07', 39.99, 14),
-('2025-02-09', 89.00, 15),
-('2025-02-11', 24.99, 16),
-('2025-02-13', 499.00, 17),
-('2025-02-15', 109.00, 18),
-('2025-02-17', 34.90, 19),
-('2025-02-19', 12.00, 20),
-('2025-02-21', 4.99, 21),
-('2025-02-23', 11.99, 22),
-('2025-02-25', 14.99, 23),
-('2025-02-27', 189.00, 24),
-('2025-03-02', 199.00, 25),
-('2025-03-04', 24.99, 26),
-('2025-03-06', 89.00, 27),
-('2025-03-08', 39.90, 28),
-('2025-03-10', 1.20, 29),
-('2025-03-12', 14.99, 30),
-('2025-03-14', 39.00, 31),
-('2025-03-16', 19.99, 32),
-('2025-03-18', 59.90, 33),
-('2025-03-20', 129.00, 34),
-('2025-03-22', 499.00, 35),
-('2025-03-24', 429.00, 36),
-('2025-03-26', 64.90, 37),
-('2025-03-28', 449.00, 38),
-('2025-03-30', 79.90, 39),
-('2025-04-02', 8.49, 40),
-('2025-04-04', 22.90, 41),
-('2025-04-06', 59.00, 42),
-('2025-04-08', 17.99, 43),
-('2025-04-10', 149.00, 44),
-('2025-04-12', 799.00, 45),
-('2025-04-14', 24.99, 46),
-('2025-04-16', 39.00, 47),
-('2025-04-18', 229.00, 48),
-('2025-04-20', 29.99, 49),
-('2025-04-22', 289.99, 50);
+# Vendite GENNAIO e FEBBRAIO 2025
+INSERT INTO vendita (data_vendita, prezzo_totale, id_negozio) VALUES
+('2025-01-02', 579.98, 1),
+('2025-01-03', 699.00, 1),
+('2025-01-04', 399.98, 2),
+('2025-01-05', 649.90, 3),
+('2025-01-06', 1299.00, 1),
+('2025-01-07', 329.00, 5),
+('2025-01-08', 269.97, 1),
+('2025-01-09', 749.00, 2),
+('2025-01-10', 449.00, 1),
+('2025-01-11', 258.00, 5),
+('2025-01-12', 549.99, 3),
+('2025-01-13', 499.99, 1),
+('2025-01-14', 699.98, 2),
+('2025-01-15', 349.95, 5),
+('2025-01-16', 799.00, 3),
+('2025-01-17', 447.00, 1),
+('2025-01-18', 89.99, 5),
+('2025-01-19', 249.50, 2),
+('2025-01-20', 159.00, 1),
+('2025-01-21', 149.50, 5),
+('2025-01-22', 599.00, 1),
+('2025-01-23', 239.70, 2),
+('2025-01-24', 174.50, 1),
+('2025-01-25', 299.95, 5),
+('2025-01-26', 449.50, 2),
+('2025-01-27', 239.70, 3),
+('2025-01-28', 387.00, 1),
+('2025-01-29', 179.00, 3),
+('2025-01-30', 327.00, 5),
+('2025-02-01', 1159.96, 1),
+('2025-02-02', 1398.00, 3),
+('2025-02-03', 599.97, 2),
+('2025-02-05', 1299.80, 5),
+('2025-02-07', 658.00, 1),
+('2025-02-10', 1498.00, 2),
+('2025-02-12', 1099.98, 3),
+('2025-02-15', 1049.97, 2),
+('2025-02-18', 1598.00, 1),
+('2025-02-20', 745.00, 5),
+('2025-02-22', 499.00, 1),
+('2025-02-25', 1198.00, 1);
 
 INSERT INTO dettaglio_vendita (quantita, prezzo_unitario, id_prodotto, id_vendita) VALUES
 (2, 289.99, 1, 1),
-(1, 649.90, 2, 2),
-(1, 599.00, 3, 3),
-(1, 749.00, 4, 4),
-(1, 549.99, 5, 5),
-(3, 29.90, 6, 6),
-(1, 119.00, 7, 7),
-(1, 899.00, 8, 8),
-(2, 24.99, 9, 9),
-(1, 49.99, 10, 10),
-(1, 59.90, 11, 11),
-(2, 79.90, 12, 12),
-(1, 39.99, 13, 13),
-(1, 89.00, 14, 14),
-(1, 109.00, 15, 15),
-(3, 14.90, 16, 16),
-(10, 1.79, 17, 17),
-(2, 9.99, 18, 18),
-(1, 34.90, 19, 19),
-(1, 12.00, 20, 20),
-(1, 4.99, 21, 21),
-(1, 11.99, 22, 22),
-(1, 14.99, 23, 23),
-(1, 189.00, 24, 24),
-(1, 199.00, 25, 25),
-(2, 24.99, 26, 26),
-(1, 89.00, 27, 27),
-(1, 39.90, 28, 28),
-(5, 1.20, 29, 29),
-(1, 14.99, 30, 30),
-(1, 39.00, 31, 31),
-(2, 19.99, 32, 32),
-(1, 59.90, 33, 33),
-(1, 129.00, 34, 34),
-(1, 499.00, 35, 35),
-(1, 429.00, 36, 36),
-(1, 64.90, 37, 37),
-(1, 449.00, 38, 38),
-(2, 79.90, 39, 39),
-(3, 8.49, 40, 40),
-(2, 22.90, 41, 41),
-(1, 59.00, 42, 42),
-(2, 17.99, 43, 43),
-(1, 149.00, 44, 44),
-(1, 799.00, 45, 45),
-(2, 24.99, 46, 46),
-(1, 39.00, 47, 47),
-(1, 229.00, 48, 48),
-(1, 29.99, 49, 49),
-(1, 289.99, 50, 50);
+(1, 699.00, 2, 2),
+(2, 199.99, 3, 3),
+(1, 649.90, 4, 4),
+(1, 1299.00, 5, 5),
+(1, 329.00, 6, 6),
+(3, 89.99, 7, 7),
+(1, 749.00, 8, 8),
+(1, 449.00, 9, 9),
+(2, 129.00, 10, 10),
+(1, 549.99, 11, 11),
+(1, 499.99, 12, 12),
+(2, 349.99, 13, 13),
+(5, 69.99, 14, 14),
+(1, 799.00, 15, 15),
+(3, 149.00, 16, 16),
+(1, 89.99, 17, 17),
+(5, 49.90, 18, 18),
+(1, 159.00, 19, 19),
+(5, 29.90, 20, 20),
+(1, 599.00, 21, 21),
+(3, 79.90, 22, 22),
+(5, 34.90, 23, 23),
+(5, 59.99, 24, 24),
+(5, 89.90, 25, 25),
+(3, 79.90, 26, 26),
+(3, 129.00, 27, 27),
+(1, 179.00, 28, 28),
+(3, 109.00, 29, 29),
+(4, 289.99, 1, 30),
+(2, 699.00, 2, 31),
+(3, 199.99, 3, 32),
+(2, 649.90, 4, 33),
+(2, 329.00, 6, 34),
+(2, 749.00, 8, 35),
+(2, 549.99, 11, 36),
+(3, 349.99, 13, 37),
+(2, 799.00, 15, 38),
+(5, 149.00, 16, 39),
+(10, 49.90, 18, 40),
+(2, 599.00, 21, 41);
 
 INSERT INTO livello_restock (id_magazzino, id_categoria, id_prodotto, soglia_restock) VALUES
-(1, 1, 1, 50),
-(2, 2, 2, 45),
-(3, 3, 3, 60),
-(4, 4, 4, 55),
-(5, 5, 5, 70),
-(6, 6, 6, 40),
-(7, 7, 7, 80),
-(8, 8, 8, 90),
-(9, 9, 9, 35),
-(10, 10, 10, 75),
-(11, 11, 11, 65),
-(12, 12, 12, 50),
-(13, 13, 13, 85),
-(14, 14, 14, 95),
-(15, 15, 15, 55),
-(16, 16, 16, 100),
-(17, 17, 17, 45),
-(18, 18, 18, 60),
-(19, 19, 19, 50),
-(20, 20, 20, 70),
-(21, 21, 21, 40),
-(22, 22, 22, 80),
-(23, 23, 23, 65),
-(24, 24, 24, 75),
-(25, 25, 25, 90),
-(26, 26, 26, 85),
-(27, 27, 27, 95),
-(28, 28, 28, 60),
-(29, 29, 29, 70),
-(30, 30, 30, 55),
-(31, 31, 31, 65),
-(32, 32, 32, 50),
-(33, 33, 33, 40),
-(34, 34, 34, 85),
-(35, 35, 35, 90),
-(36, 36, 36, 75),
-(37, 37, 37, 55),
-(38, 38, 38, 60),
-(39, 39, 39, 70),
-(40, 40, 40, 95),
-(41, 41, 41, 80),
-(42, 42, 42, 100),
-(43, 43, 43, 85),
-(44, 44, 44, 90),
-(45, 45, 45, 50),
-(46, 46, 46, 40),
-(47, 47, 47, 75),
-(48, 48, 48, 80),
-(49, 49, 49, 65),
-(50, 50, 50, 55);
+(1, 3, 1, 45),
+(2, 3, 1, 40),
+(3, 3, 1, 30),
+(1, 3, 2, 25),
+(3, 3, 2, 20),
+(1, 3, 3, 60),
+(2, 3, 3, 55),
+(1, 2, 4, 20),
+(3, 2, 4, 15),
+(1, 2, 5, 10),
+(1, 2, 6, 30),
+(5, 2, 6, 25),
+(1, 2, 7, 90),
+(2, 2, 7, 75),
+(1, 4, 8, 12),
+(2, 4, 8, 10),
+(1, 4, 9, 15),
+(2, 4, 9, 12),
+(1, 4, 10, 25),
+(1, 5, 11, 20),
+(3, 5, 11, 15),
+(1, 5, 12, 18),
+(1, 5, 13, 30),
+(2, 5, 13, 25),
+(1, 5, 14, 45),
+(1, 7, 15, 8),
+(1, 7, 16, 30),
+(5, 7, 16, 25),
+(1, 7, 17, 20),
+(1, 8, 18, 60),
+(2, 8, 18, 55),
+(1, 8, 19, 15),
+(1, 8, 20, 90),
+(1, 11, 21, 10),
+(1, 11, 22, 30),
+(1, 11, 23, 45),
+(1, 14, 24, 60),
+(2, 14, 24, 55),
+(1, 14, 25, 75),
+(1, 15, 26, 45),
+(1, 16, 27, 55),
+(2, 16, 27, 50),
+(1, 16, 28, 30),
+(1, 20, 29, 30),
+(3, 20, 29, 25),
+(1, 20, 30, 20);
 
-SELECT * FROM categoria;
-SELECT * FROM magazzino;
-SELECT * FROM prodotto;
-SELECT * FROM stock;
-SELECT * FROM negozio;
-SELECT * FROM vendita;
-SELECT * FROM dettaglio_vendita;
-
-# Ogni qual volta un prodotto viene venduto in un negozio, qual è la query da eseguire per aggiornare le tabelle di riferimento?
-# Questa query mi dà il TOTALE VENDUTO per id_prodotto e id_magazzino, quindi creo la VIEW chiamata vendite_totali
-CREATE VIEW vendite_totali_gennaio AS (
-SELECT
-	p.nome AS nome_prodotto,
-	dv.id_prodotto,
-    m.id_magazzino,
-    SUM(dv.quantita) AS tot_venduto
-FROM dettaglio_vendita dv
-JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
-JOIN vendita v ON dv.id_vendita = v.id_vendita
-JOIN negozio n ON v.id_negozio = n.id_negozio
-JOIN magazzino m ON n.id_magazzino = m.id_magazzino
-GROUP BY 
-	p.nome,
-	dv.id_prodotto,
-    m.id_magazzino
-);
-
-SELECT * FROM vendite_totali;
-
-# Ora devo aggiornare quantita_rimanente, facendo quantita_iniziale - vendita_totali
-# View che mostra lo stato aggiornato delle scorte dopo le vendite
-CREATE VIEW stato_scorte AS
+# Chiusura gennaio e creazione stock febbraio
+INSERT INTO stock (id_prodotto, id_magazzino, quantita_iniziale, quantita_rimanente, anno, mese)
 SELECT 
     s.id_prodotto,
-    p.nome AS nome_prodotto,
     s.id_magazzino,
-    s.quantita_iniziale,
-    s.quantita_iniziale - IFNULL(vt.tot_venduto, 0) AS quantita_rimanente_calcolata
+    s.quantita_rimanente AS quantita_iniziale,                                      # QUANTITA' RIMANENTE DEL MESE PRIMA (GENNAIO)
+    s.quantita_rimanente - IFNULL(v.tot_venduto, 0) AS quantita_rimanente,         # QUANTITA' RIMANENTE DI FEBBRAIO
+    2025 AS anno,
+    2 AS mese
 FROM stock s
-LEFT JOIN vendite_totali vt 
-  ON s.id_prodotto = vt.id_prodotto 
- AND s.id_magazzino = vt.id_magazzino
-JOIN prodotto p ON s.id_prodotto = p.id_prodotto;
+LEFT JOIN (
+    SELECT                                                                          # SUBQUERY CALCOLA VENDITE DI FEBBRAIO
+        dv.id_prodotto,
+        m.id_magazzino,
+        SUM(dv.quantita) AS tot_venduto
+    FROM dettaglio_vendita dv
+    JOIN vendita vend ON dv.id_vendita = vend.id_vendita
+    JOIN negozio n ON vend.id_negozio = n.id_negozio
+    JOIN magazzino m ON n.id_magazzino = m.id_magazzino
+    WHERE YEAR(vend.data_vendita) = 2025 AND MONTH(vend.data_vendita) = 2
+    GROUP BY dv.id_prodotto, m.id_magazzino
+) v ON s.id_prodotto = v.id_prodotto AND s.id_magazzino = v.id_magazzino
+WHERE s.anno = 2025 AND s.mese = 1;
 
-SELECT * FROM stato_scorte;
-
-# Quali sono le query da eseguire per verificare quante unità di un prodotto ci sono in un dato magazzino e per monitorare le soglie di restock?
-CREATE VIEW prodotto_sotto_soglia AS (
+# CREAZIONE VIEW
+# Vendite raggruppate per prodotto, magazzino e data
+CREATE VIEW vendite_per_mese AS
 SELECT
-	ss.id_prodotto,
-    ss.nome_prodotto,
-    lr.soglia_restock,
-    ss.quantita_rimanente_calcolata
-FROM stato_scorte ss
-JOIN livello_restock lr 
-	ON ss.id_magazzino = lr.id_magazzino
-	AND ss.id_prodotto = lr.id_prodotto
-WHERE ss.quantita_rimanente_calcolata < lr.soglia_restock  # mostra tutti i prodotti dove le scorte sono inferiori alla soglia_restock
-);
-
-# Views per controllare tutto: Vendite Totali, Stato delle Scorte ed i Prodotti sotta la soglia restock
-SELECT * FROM vendite_totali;
-SELECT * FROM stato_scorte;
-SELECT * FROM prodotto_sotto_soglia;
-
-DROP VIEW stato_scorte;
-DROP VIEW vendite_totali;
-
-SELECT
-	dv.id_prodotto,
-    m.id_magazzino,
-    s.quantita_iniziale - IFNULL(vt.tot_venduto, 0) AS quantita_rimanente_calcolata,
-    DATE_FORMAT(v.data_vendita, "%Y%m") AS YYYYMM,
-    p.nome AS nome_prodotto,
+    p.nome AS prodotto,
+    m.nome_magazzino AS magazzino,
+    YEAR(v.data_vendita) AS anno,
+    MONTH(v.data_vendita) AS mese,
     SUM(dv.quantita) AS tot_venduto
 FROM dettaglio_vendita dv
 JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
@@ -567,133 +394,45 @@ JOIN vendita v ON dv.id_vendita = v.id_vendita
 JOIN negozio n ON v.id_negozio = n.id_negozio
 JOIN magazzino m ON n.id_magazzino = m.id_magazzino
 GROUP BY 
-	p.nome,
-	dv.id_prodotto,
-    m.id_magazzino,
-    DATE_FORMAT(v.data_vendita, "%Y%m")
-ORDER BY
-	dv.id_prodotto,
-    m.id_magazzino,
-    DATE_FORMAT(v.data_vendita, "%Y%m");
-    
-INSERT INTO vendita (data_vendita, prezzo_vendita, id_negozio) VALUES
-('2025-01-05', 319.98, 1),  -- 2 righe
-('2025-01-05', 79.79, 2),   -- stesso giorno, altro negozio
-('2025-01-07', 579.98, 1),
-('2025-01-10', 258.99, 3),
-('2025-01-10', 614.89, 4),  -- stesso giorno
-('2025-01-13', 268.90, 5),
-('2025-01-15', 799.00, 6),
-('2025-01-18', 158.00, 7),
-('2025-01-18', 69.88, 8),   -- stesso giorno
-('2025-01-21', 449.00, 9),
-('2025-01-24', 599.00, 10),
-('2025-01-27', 43.46, 11),
-('2025-01-30', 928.00, 12),
-('2025-02-02', 129.89, 13),
-('2025-02-02', 349.96, 14), -- stesso giorno
-('2025-02-05', 223.00, 15),
-('2025-02-08', 37.88, 16),
-('2025-02-11', 198.98, 17),
-('2025-02-14', 899.00, 18),
-('2025-02-17', 79.89, 19),
-('2025-02-20', 51.00, 20),
-('2025-02-23', 41.97, 21),
-('2025-02-26', 698.99, 22),
-('2025-03-01', 548.98, 23);
+    p.nome,
+    m.nome_magazzino,
+    YEAR(v.data_vendita),
+    MONTH(v.data_vendita)
+ORDER BY anno DESC, mese DESC, tot_venduto DESC;
 
-INSERT INTO dettaglio_vendita (quantita, prezzo_unitario, id_prodotto, id_vendita) VALUES
--- Vendita 1 (negozio 1)
-(1, 289.99, 1, 1),
-(1, 29.99, 50, 1),
+# Stock attuale (ultimo mese disponibile)
+CREATE VIEW stock_attuale AS
+SELECT 
+    p.nome AS prodotto,
+    m.nome_magazzino AS magazzino,
+    s.quantita_rimanente AS quantita,
+    s.anno,
+    s.mese
+FROM stock s
+JOIN prodotto p ON s.id_prodotto = p.id_prodotto
+JOIN magazzino m ON s.id_magazzino = m.id_magazzino
+WHERE (s.anno, s.mese) = (
+    SELECT anno, mese 
+    FROM stock 
+    ORDER BY anno DESC, mese DESC
+    LIMIT 1
+);
 
--- Vendita 2 (negozio 2)
-(2, 29.90, 6, 2),
-(1, 19.99, 33, 2),
+# Prodotti sotto soglia di restock
+CREATE VIEW prodotti_sotto_soglia AS
+SELECT
+    sa.nome_prodotto,
+    sa.nome_magazzino,
+    sa.quantita_rimanente,
+    lr.soglia_restock,
+    (lr.soglia_restock - sa.quantita_rimanente) AS unita_da_ordinare
+FROM stock_attuale sa
+JOIN livello_restock lr 
+    ON sa.id_magazzino = lr.id_magazzino
+    AND sa.id_prodotto = lr.id_prodotto
+WHERE sa.quantita_rimanente < lr.soglia_restock
+ORDER BY unita_da_ordinare DESC;
 
--- Vendita 3 (negozio 1)
-(2, 289.99, 1, 3),
-
--- Vendita 4 (negozio 3)
-(1, 229.00, 49, 4),
-(1, 29.99, 50, 4),
-
--- Vendita 5 (negozio 4)
-(1, 549.99, 5, 5),
-(1, 64.90, 38, 5),
-
--- Vendita 6 (negozio 5)
-(1, 189.00, 24, 6),
-(1, 79.90, 12, 6),
-
--- Vendita 7 (negozio 6)
-(1, 799.00, 46, 7),
-
--- Vendita 8 (negozio 7)
-(1, 119.00, 7, 8),
-(1, 39.00, 48, 8),
-
--- Vendita 9 (negozio 8)
-(2, 19.99, 33, 9),
-(1, 29.90, 6, 9),
-
--- Vendita 10 (negozio 9)
-(1, 449.00, 39, 10),
-
--- Vendita 11 (negozio 10)
-(1, 599.00, 3, 11),
-
--- Vendita 12 (negozio 11)
-(3, 8.49, 41, 12),
-(1, 17.99, 44, 12),
-
--- Vendita 13 (negozio 12)
-(1, 499.00, 36, 13),
-(1, 429.00, 37, 13),
-
--- Vendita 14 (negozio 13)
-(1, 49.99, 10, 14),
-(1, 79.90, 12, 14),
-
--- Vendita 15 (negozio 14)
-(1, 289.99, 1, 15),
-(3, 19.99, 33, 15),
-
--- Vendita 16 (negozio 15)
-(2, 12.00, 20, 16),
-(1, 199.00, 25, 16),
-
--- Vendita 17 (negozio 16)
-(10, 1.79, 17, 17),
-(2, 9.99, 18, 17),
-
--- Vendita 18 (negozio 17)
-(1, 149.00, 45, 18),
-(2, 24.99, 47, 18),
-
--- Vendita 19 (negozio 18)
-(1, 899.00, 8, 19),
-
--- Vendita 20 (negozio 19)
-(1, 14.99, 31, 20),
-(1, 64.90, 38, 20),
-
--- Vendita 21 (negozio 20)
-(1, 39.00, 32, 21),
-(1, 12.00, 20, 21),
-
--- Vendita 22 (negozio 21)
-(1, 11.99, 22, 22),
-(2, 14.99, 23, 22),
-
--- Vendita 23 (negozio 22)
-(1, 549.99, 5, 23),
-(1, 149.00, 45, 23),
-
--- Vendita 24 (negozio 23)
-(1, 289.99, 1, 24),
-(1, 229.00, 49, 24),
-(1, 29.99, 50, 24);
-
-SELECT * FROM vendita
-ORDER BY data_vendita DESC;
+SELECT * FROM vendite_per_mese;
+SELECT * FROM stock_attuale;
+SELECT * FROM prodotti_sotto_soglia;
