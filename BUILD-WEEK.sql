@@ -403,6 +403,8 @@ ORDER BY anno DESC, mese DESC, tot_venduto DESC;
 # Stock attuale (ultimo mese disponibile)
 CREATE VIEW stock_attuale AS
 SELECT 
+    p.id_prodotto,
+    m.id_magazzino,
     p.nome AS prodotto,
     m.nome_magazzino AS magazzino,
     s.quantita_rimanente AS quantita,
@@ -421,16 +423,16 @@ WHERE (s.anno, s.mese) = (
 # Prodotti sotto soglia di restock
 CREATE VIEW prodotti_sotto_soglia AS
 SELECT
-    sa.nome_prodotto,
-    sa.nome_magazzino,
-    sa.quantita_rimanente,
+    sa.prodotto,
+    sa.magazzino,
+    sa.quantita,
     lr.soglia_restock,
-    (lr.soglia_restock - sa.quantita_rimanente) AS unita_da_ordinare
+    (lr.soglia_restock - sa.quantita) AS unita_da_ordinare
 FROM stock_attuale sa
 JOIN livello_restock lr 
     ON sa.id_magazzino = lr.id_magazzino
     AND sa.id_prodotto = lr.id_prodotto
-WHERE sa.quantita_rimanente < lr.soglia_restock
+WHERE sa.quantita < lr.soglia_restock
 ORDER BY unita_da_ordinare DESC;
 
 SELECT * FROM vendite_per_mese;
