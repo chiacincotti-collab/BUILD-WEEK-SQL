@@ -435,6 +435,59 @@ JOIN livello_restock lr
 WHERE sa.quantita < lr.soglia_restock
 ORDER BY unita_da_ordinare DESC;
 
+# Prodotto più venduto
+CREATE VIEW prodotto_piu_venduto AS
+SELECT
+    p.nome AS prodotto,
+    m.nome_magazzino AS magazzino,
+    SUM(dv.quantita) AS tot_venduto
+FROM dettaglio_vendita dv
+JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
+JOIN vendita v ON dv.id_vendita = v.id_vendita
+JOIN negozio n ON v.id_negozio = n.id_negozio
+JOIN magazzino m ON n.id_magazzino = m.id_magazzino
+GROUP BY  p.nome,
+          m.nome_magazzino
+ORDER BY tot_venduto DESC
+LIMIT 3;
+
+# Magazzino con più vendite
+CREATE VIEW magazzino_con_piu_vendite AS
+SELECT
+    m.id_magazzino,
+    m.nome_magazzino AS magazzino,
+    SUM(dv.quantita) AS tot_venduto
+FROM dettaglio_vendita dv
+JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
+JOIN vendita v ON dv.id_vendita = v.id_vendita
+JOIN negozio n ON v.id_negozio = n.id_negozio
+JOIN magazzino m ON n.id_magazzino = m.id_magazzino
+GROUP BY  m.id_magazzino,
+          m.nome_magazzino
+ORDER BY tot_venduto DESC
+LIMIT 4;
+
+SELECT * FROM magazzino;
+
+# Vendite totali di tutti i magazzini
+CREATE VIEW vendite_tutti_magazzini AS
+SELECT
+	m.id_magazzino,
+	m. nome_magazzino,
+     SUM(dv.quantita) AS tot_venduto
+FROM magazzino m
+LEFT JOIN negozio n ON m.id_magazzino = n.id_magazzino
+LEFT JOIN vendita v ON n.id_negozio = v.id_negozio
+LEFT JOIN dettaglio_vendita dv ON v.id_vendita = dv.id_vendita
+LEFT JOIN prodotto p ON dv.id_prodotto = p.id_prodotto
+GROUP BY m.id_magazzino,
+	     m. nome_magazzino
+ORDER BY tot_venduto DESC;
+
+# SELECT per visualizzare gli insights
 SELECT * FROM vendite_per_mese;
 SELECT * FROM stock_attuale;
 SELECT * FROM prodotti_sotto_soglia;
+SELECT * FROM prodotto_piu_venduto;
+SELECT * FROM magazzino_con_piu_vendite;
+SELECT * FROM vendite_tutti_magazzini;
