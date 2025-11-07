@@ -360,13 +360,13 @@ INSERT INTO stock (id_prodotto, id_magazzino, quantita_iniziale, quantita_rimane
 SELECT 
     s.id_prodotto,
     s.id_magazzino,
-    s.quantita_rimanente AS quantita_iniziale,                                      # QUANTITA' RIMANENTE DEL MESE PRIMA (GENNAIO)
+    s.quantita_rimanente AS quantita_iniziale,                                     # QUANTITA' RIMANENTE DEL MESE PRIMA (GENNAIO)
     s.quantita_rimanente - IFNULL(v.tot_venduto, 0) AS quantita_rimanente,         # QUANTITA' RIMANENTE DI FEBBRAIO
     2025 AS anno,
     2 AS mese
 FROM stock s
 LEFT JOIN (
-    SELECT                                                                          # SUBQUERY CALCOLA VENDITE DI FEBBRAIO
+    SELECT                                                                         # SUBQUERY CALCOLA VENDITE DI FEBBRAIO
         dv.id_prodotto,
         m.id_magazzino,
         SUM(dv.quantita) AS tot_venduto
@@ -380,7 +380,8 @@ LEFT JOIN (
 WHERE s.anno = 2025 AND s.mese = 1;
 
 # CREAZIONE VIEW
-# Vendite raggruppate per prodotto, magazzino e data
+/* Questa view mostra le vendite mensili, raggruppate per prodotto e magazzino.
+   Serve per confrontare i volumi di vendita tra mesi diversi*/
 CREATE VIEW vendite_per_mese AS
 SELECT
     p.nome AS prodotto,
@@ -400,7 +401,8 @@ GROUP BY
     MONTH(v.data_vendita)
 ORDER BY anno DESC, mese DESC, tot_venduto DESC;
 
-# Stock attuale (ultimo mese disponibile)
+/* Stock attuale (ultimo mese disponibile)
+   Questa invece restituisce lo stock più recente, cioè le quantità aggiornate all’ultimo mese disponibile*/
 CREATE VIEW stock_attuale AS
 SELECT 
     p.id_prodotto,
@@ -420,7 +422,8 @@ WHERE (s.anno, s.mese) = (
     LIMIT 1
 );
 
-# Prodotti sotto soglia di restock
+/* Prodotti sotto soglia di restock
+   Qui individuiamo in automatico i prodotti sotto la soglia di restock e calcoliamo quante unità servono per tornare al livello minimo*/
 CREATE VIEW prodotti_sotto_soglia AS
 SELECT
     sa.prodotto,
@@ -435,7 +438,8 @@ JOIN livello_restock lr
 WHERE sa.quantita < lr.soglia_restock
 ORDER BY unita_da_ordinare DESC;
 
-# Prodotto più venduto
+/* Prodotto più venduto
+   Con questa view otteniamo i prodotti più venduti, utili per capire le categorie più richieste nei diversi magazzini.*/
 CREATE VIEW prodotto_piu_venduto AS
 SELECT
     p.nome AS prodotto,
@@ -451,7 +455,8 @@ GROUP BY  p.nome,
 ORDER BY tot_venduto DESC
 LIMIT 3;
 
-# Magazzino con più vendite
+/* Magazzino con più vendite
+   Questa view invece mostra quali magazzini registrano più vendite complessive, utile per analizzare le performance logistiche*/
 CREATE VIEW magazzino_con_piu_vendite AS
 SELECT
     m.id_magazzino,
@@ -466,14 +471,15 @@ GROUP BY  m.id_magazzino,
           m.nome_magazzino
 ORDER BY tot_venduto DESC
 LIMIT 4;
-
 SELECT * FROM magazzino;
 
-# Vendite totali di tutti i magazzini
+/* Vendite totali di tutti i magazzini
+   Infine, abbiamo una panoramica generale con le vendite totali di tutti i magazzini.
+   Da qui possiamo confrontare facilmente l’andamento dell’azienda*/
 CREATE VIEW vendite_tutti_magazzini AS
 SELECT
 	m.id_magazzino,
-	m. nome_magazzino,
+	m.nome_magazzino,
      SUM(dv.quantita) AS tot_venduto
 FROM magazzino m
 LEFT JOIN negozio n ON m.id_magazzino = n.id_magazzino
